@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Notlar</title>
+    <style>
+         body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 200px;
+        height: 100%;
+        background-color: #333;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: fixed;
+        top: 0; 
+        left: 0;
+    }
+
+    .sidebar a {
+        padding: 10px;
+        display: block;
+        color: white;
+        text-decoration: none;
+        margin: 10px 0;
+        text-align: center;
+    }
+
+    .sidebar a:hover {
+        background-color: #444;
+    }
+    .content {
+            margin-left: 200px;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <!-- Sidebar içeriği -->
+        <a href="/dashboard">Dashboard</a>
+        <a href="/ucaklar">Uçaklar</a>
+        <a href="/notlar">Notlar</a>
+        <a href="/cikis">Çıkış</a>
+    </div>
+
+    <div class="content">
+        <div class="not-listesi">
+            <h2>Alınan Notlar</h2>
+            <ul id="alinanNotlar">
+            </ul>
+        </div>
+
+        <!-- Not Ekleme Formu -->
+        <div class="form-container">
+            <h4>Not Ekle</h2>
+                <textarea id="alinanNot" name="alinanNot" placeholder="Not içeriği" rows="4" required></textarea>
+                <button type="submit" onclick="notEkle()">Not Ekle</button>
+        </div>
+    </div>
+
+    <script>
+        notListele();
+        function notListele(){
+            fetch('/api/notlar')
+                .then(response => response.json())
+                .then(notlar => {
+                    const notListesi = document.getElementById('alinanNotlar');
+                    notListesi.innerHTML = '';
+                    notlar.forEach(not => {
+                        const li = document.createElement('li');
+                        const formattedDate = new Date(not.eklenen_tarih).toLocaleDateString('tr-TR', {
+                            year: 'numeric', month: 'long', day: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                        });
+                        li.textContent = formattedDate + ' - ' + not.alinan_not;
+                        li.classList.add('not-item'); // Add a class for styling
+                        notListesi.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function notEkle(){
+            var formData = {
+                not: document.getElementById('alinanNot').value
+            };
+            fetch('/api/not-ekle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData) 
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('alinanNot').value = '';
+                notListele();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
